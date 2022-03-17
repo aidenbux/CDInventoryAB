@@ -9,8 +9,8 @@
 
 use master;
 go
---DROP DATABASE IF EXISTS disk_inventoryAB;
---go
+DROP DATABASE IF EXISTS disk_inventoryAB;
+go
 CREATE DATABASE disk_inventoryAB;
 go
 --add server user
@@ -178,3 +178,5 @@ VALUES
 SELECT borrower_ID as Borrower_ID, CD_ID as cd_ID, CAST  (borrowed_date as date) as Borrowed_date, return_date as Return_date
 FROM CD_out
 WHERE return_date IS NULL;
+
+
