@@ -4,6 +4,7 @@
 /*3/4/22	Aiden	Project Created	tables made*/
 /*3/09/22	Aiden	Project 3 work, Inserts added*/
 /*3/11/22	Aiden	Inserts populated and stuff*/
+/*3/18/22	Aiden	Project 4, added views and added report statements*/
 /**/
 /**/
 
@@ -179,4 +180,92 @@ SELECT borrower_ID as Borrower_ID, CD_ID as cd_ID, CAST  (borrowed_date as date)
 FROM CD_out
 WHERE return_date IS NULL;
 
+--Project 4
 
+--1
+
+SELECT 'CD Name'=CD_name, release_date, media_format.format_type, genre.genre_desc, status.status_desc
+FROM CD
+JOIN media_format
+	ON CD.format_ID = media_format.format_ID
+JOIN genre
+	ON CD.genre_ID = genre.genre_ID
+JOIN status
+	ON CD.status_ID = status.status_ID
+ORDER BY CD_name
+;
+
+--2
+
+SELECT borrower_lname, borrower_fname, CD_name, borrowed_date, return_date
+FROM CD_out
+JOIN borrower
+	ON CD_out.borrower_ID = borrower.borrower_ID
+JOIN CD
+	ON CD_out.CD_ID = CD.CD_ID
+ORDER BY borrower_lname
+;
+
+--3
+
+SELECT CD_name, COUNT(*)
+FROM CD_out
+JOIN CD
+	ON CD_out.CD_ID = CD.CD_ID
+GROUP BY CD_name
+HAVING COUNT(*) > 1
+ORDER BY CD_name
+;
+
+--4
+
+SELECT CD_name, borrowed_date, return_date, borrower_lname, borrower_fname
+FROM CD
+JOIN CD_out
+	ON CD.CD_ID = CD_out.CD_ID
+JOIN borrower
+	ON borrower.borrower_ID = CD_out.borrower_ID
+WHERE return_date IS NULL
+ORDER BY CD_name
+;
+
+--5
+
+GO --Own batch for create view
+
+CREATE VIEW View_Borrower_No_Loans
+AS
+	SELECT borrower_ID, borrower_lname, borrower_fname
+	FROM borrower
+	WHERE borrower_ID NOT IN
+		(SELECT DISTINCT borrower_ID
+		FROM CD_out)
+;
+GO
+
+CREATE VIEW View_Borrower_No_Loans2
+AS
+	SELECT borrower.borrower_ID, borrower_lname, borrower_fname
+	FROM borrower
+	LEFT JOIN CD_out ON
+		borrower.borrower_ID =
+		CD_out.borrower_ID
+	WHERE borrowed_date IS NULL
+;
+GO
+
+SELECT borrower_lname, borrower_fname
+FROM View_Borrower_No_Loans
+ORDER BY borrower_lname, borrower_fname
+;
+
+--6
+
+SELECT borrower_lname, borrower_fname, COUNT(CD_ID)
+FROM CD_out
+JOIN borrower
+	ON borrower.borrower_ID = CD_out.borrower_ID
+GROUP BY borrower_lname, borrower_fname
+HAVING COUNT(*) > 1
+ORDER BY borrower_lname, borrower_fname
+;
