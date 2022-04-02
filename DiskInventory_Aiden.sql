@@ -5,6 +5,8 @@
 /*3/09/22	Aiden	Project 3 work, Inserts added*/
 /*3/11/22	Aiden	Inserts populated and stuff*/
 /*3/18/22	Aiden	Project 4, added views and added report statements*/
+/*3/30/22	Aiden	Project 5 continue. */
+/*4/1/22	Aiden	Fixed issue with later half of code */
 /**/
 /**/
 
@@ -269,3 +271,134 @@ GROUP BY borrower_lname, borrower_fname
 HAVING COUNT(*) > 1
 ORDER BY borrower_lname, borrower_fname
 ;
+
+--Ch15 Lab
+
+use disk_inventoryAB;
+-- create proc sp_ins_disk_has_borrower or CD
+
+DROP PROC IF EXISTS  sp_ins_CD_out;
+go
+CREATE PROC sp_ins_CD_out
+	@borrower_id int, @CD_id int, @borrowed_date datetime2, @return_date datetime2 = NULL
+AS
+BEGIN TRY
+	INSERT CD_out
+		(borrower_id, CD_id, borrowed_date, return_date)
+	VALUES
+		(@borrower_id, @CD_id, @borrowed_date, @return_date);
+END TRY
+BEGIN CATCH
+	PRINT 'An Error Occured';
+	PRINT 'Message: ' + CONVERT(VARCHAR(200), ERROR_MESSAGE());
+END CATCH
+go
+GRANT EXEC ON sp_ins_CD_out TO diskUserAB;
+go
+sp_ins_CD_out 2, 3, '3-27-2022', '3-28-2022'
+go
+sp_ins_CD_out 4, 5, '3-27-2022'
+go
+
+--PROJECT 5
+
+DROP PROC IF EXISTS sp_upd_CD_out
+GO
+
+CREATE PROC sp_upd_CD_out
+	@CD_out_CD_ID int, @borrower_id int, @CD_id int, @borrowed_date datetime2, @return_date datetime2 = NULL
+AS
+	BEGIN TRY
+		UPDATE CD_out
+		SET borrower_id = @borrower_id,
+			CD_id = @CD_id,
+			borrowed_date = @borrowed_date,
+			return_date = @return_date
+		WHERE CD_out_CD_ID = @CD_out_CD_ID;
+	END TRY
+	BEGIN CATCH
+		PRINT 'an error occurred.';
+		PRINT 'Message: ' + CONVERT(VARCHAR(200), ERROR_MESSAGE());
+	END CATCH
+GO
+
+sp_upd_CD_out 24, 2, 4, '3-3-2022', '3-23-2022';
+GO
+declare @today datetime2 = getdate();
+exec sp_upd_CD_out 24, 2, 3, '3-13-2022', @today;
+GO
+
+DROP PROC IF EXISTS sp_ins_CD;
+GO
+CREATE PROC sp_ins_CD
+	@CD_name nvarchar(6), @release_date date, @genre_id int, @status_id int, @CD_type_id int
+AS
+	BEGIN TRY
+		INSERT CD
+		(CD_name, release_date, genre_id, status_id, format_ID)
+		VALUES 
+		(@CD_name, @release_date, @genre_id, @status_id, @CD_type_id)
+
+	END TRY
+	BEGIN CATCH
+		PRINT 'an error occurred.';
+		PRINT 'Message: ' + CONVERT(VARCHAR(200), ERROR_MESSAGE());
+	END CATCH
+GO
+
+-- Grants Permissions
+GRANT EXECUTE ON sp_ins_CD TO diskUserAB;
+GO
+EXEC sp_ins_CD 'Beastie Boys 2', '3/25/2022', 4, 1, 1
+GO
+EXEC sp_ins_CD 'Beastie Boys 2', '3/25/2022', 4, 1, NULL --bad
+GO
+
+DROP PROC IF EXISTS sp_upd_CD;
+go
+CREATE PROC sp_upd_CD
+	@CD_id int, @CD_name nvarchar(60), @release_date date, @genre_id int, @status_id int, @format_ID int
+AS
+	BEGIN TRY
+		UPDATE CD
+		SET CD_name = @CD_name,
+			release_date = @release_date,
+			genre_id = @genre_id,
+			status_id = @status_id,
+			format_ID = @format_ID
+		WHERE CD_id = @CD_id;
+	END TRY
+	BEGIN CATCH
+		PRINT 'an error occurred.';
+		PRINT 'Message: ' + CONVERT(VARCHAR(200), ERROR_MESSAGE());
+	END CATCH
+GO
+
+-- Grants Permissions
+GRANT EXECUTE ON sp_upd_CD TO diskUserAB;
+GO
+EXEC sp_upd_CD 23, 'Beastie Boys 2', '3/25/2022', 4, 1, 1
+GO
+EXEC sp_upd_CD 23, 'Beastie Boys 2', '3/25/2022', 4, 1, NULL
+GO
+
+DROP PROC IF EXISTS sp_del_CD;
+GO
+CREATE PROC sp_del_CD
+	@CD_id int
+AS
+	BEGIN TRY
+		DELETE FROM [dbo].[CD]
+			  WHERE CD_id = @CD_id;
+	END TRY
+	BEGIN CATCH
+		PRINT 'an error occurred.';
+		PRINT 'Message: ' + CONVERT(VARCHAR(200), ERROR_MESSAGE());
+	END CATCH
+GO
+GRANT EXECUTE ON sp_del_CD TO diskUserAB;
+GO
+EXEC sp_del_CD 44;
+GO
+EXEC sp_del_CD 3;
+GO
